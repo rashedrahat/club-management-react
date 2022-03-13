@@ -1,26 +1,52 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import {
+	BrowserRouter as Router,
+	Switch,
+	Route,
+	Redirect,
+} from "react-router-dom";
+import "./App.css";
+import { appRoutes } from "utils/routes";
+import Navbar from "components/layout/Navbar";
+import Login from "components/Login";
+import PrivateRoute from "components/PrivateRoute";
+import { useSelector, useDispatch } from "react-redux";
+import { getAuthInfo } from "redux/selectors";
+import { useEffect } from "react";
+import { SET_LOGIN_CRED } from "redux/auth/auth.types";
+import Dashboard from "components/Dashboard";
+import Clubs from "components/Clubs";
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+	const auth = useSelector((state) => getAuthInfo(state));
+	const dispatch = useDispatch();
+
+	useEffect(() => {
+		const loggedInUser = localStorage.getItem("loggedInUser");
+		if (loggedInUser)
+			dispatch({
+				type: SET_LOGIN_CRED,
+				payload: JSON.parse(String(loggedInUser)),
+			});
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	return (
+		<Router>
+			<>
+				<Navbar auth={auth} />
+				<Switch>
+					<Route path={appRoutes.LOG_IN} exact component={Login} />
+					<PrivateRoute
+						Component={Dashboard}
+						auth={auth}
+						path={appRoutes.DASHBOARD}
+					/>
+					<PrivateRoute Component={Clubs} auth={auth} path={appRoutes.CLUBS} />
+					<Redirect to={appRoutes.LOG_IN} />
+				</Switch>
+			</>
+		</Router>
+	);
 }
 
 export default App;
