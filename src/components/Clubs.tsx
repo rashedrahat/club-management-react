@@ -4,6 +4,7 @@ import { getAllClubs } from "redux/selectors";
 import { parseGET } from "utils/api";
 import { fetchClubs } from "redux/club/club.actions";
 import SearchBar from "./common/SearchBar";
+import SlideOver from "./common/SlideOver";
 
 /* eslint-disable array-callback-return */
 type MembersAvatarProps = {
@@ -21,6 +22,7 @@ const MembersAvatars = ({ list }: MembersAvatarProps) => {
 							className="inline-block h-8 w-8 rounded-full ring-2 ring-white"
 							src={member.avatar}
 							alt=""
+							key={i}
 						/>
 					);
 			})}
@@ -34,16 +36,28 @@ const MembersAvatars = ({ list }: MembersAvatarProps) => {
 };
 
 type ClubProps = {
+	id: number;
 	slug: string;
 	imgURL: string;
 	name: string;
 	members: object[];
 	description: string;
+	addMember: (clubId: number) => void;
 };
 
-const Club = ({ imgURL, name, members, description }: ClubProps) => {
+const Club = ({
+	id,
+	imgURL,
+	name,
+	members,
+	description,
+	addMember,
+}: ClubProps) => {
 	return (
-		<div className="w-full h-auto rounded-xl shadow-md bg-white hover:shadow-xl">
+		<div
+			className="w-full h-auto rounded-xl shadow-md bg-white hover:shadow-xl"
+			key={id}
+		>
 			<div
 				style={{
 					backgroundImage: `url(${imgURL})`,
@@ -72,7 +86,10 @@ const Club = ({ imgURL, name, members, description }: ClubProps) => {
 					) : (
 						<p className="text-base text-gray-500 font-semibold">N/A</p>
 					)}
-					<p className="text-sm text-green-500 font-semibold cursor-pointer hover:text-green-700">
+					<p
+						className="text-sm text-green-500 font-semibold cursor-pointer hover:text-green-700"
+						onClick={() => addMember(id)}
+					>
 						Add member
 					</p>
 				</div>
@@ -84,6 +101,10 @@ const Club = ({ imgURL, name, members, description }: ClubProps) => {
 export default function Clubs() {
 	const clubs = useSelector((state) => getAllClubs(state));
 	const [searchQuery, setSearchQuery] = useState("");
+	const [open, setOpen] = useState(false);
+	const [clubIdToAddMember, setClubIdToAddMember] = useState<
+		number | undefined
+	>(undefined);
 
 	const dispatch = useDispatch();
 
@@ -126,9 +147,24 @@ export default function Clubs() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [searchQuery]);
 
+	const addMember = (clubId: number) => {
+		setOpen(!open);
+		setClubIdToAddMember(clubId);
+	};
+
+	useEffect(() => {
+		if (!open) setClubIdToAddMember(undefined);
+	}, [open]);
+
 	return (
 		<div className="max-w-full h-full rounded-xl mx-5">
 			<div className="container mx-auto py-10">
+				<SlideOver
+					open={open}
+					setOpen={setOpen}
+					title="New member"
+					description="Proceed by filling in the information below to add a member into this club."
+				/>
 				<div className="flex justify-between items-center">
 					<h1 className="font-semibold text-xl leading-10 text-gray-700">
 						Discover Clubs
@@ -144,12 +180,14 @@ export default function Clubs() {
 						<div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-5">
 							{clubs.map((club: ClubProps) => (
 								<Club
+									id={club.id}
 									slug={club.slug}
 									imgURL={club.imgURL}
 									name={club.name}
 									members={club.members}
 									description={`It is a long established fact that a reader will be distracted
 									by the readable content of a page when looking at its layout.`}
+									addMember={addMember}
 								/>
 							))}
 						</div>

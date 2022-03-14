@@ -73,7 +73,6 @@ const Login = () => {
 										"appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
 									}
 									placeHolder={"Username"}
-									required
 									value={inputs?.userName}
 									onChange={(e) => onChangeHandler(e)}
 								/>
@@ -86,7 +85,6 @@ const Login = () => {
 										"appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
 									}
 									placeHolder={"Password"}
-									required
 									value={inputs.password}
 									onChange={(e) => onChangeHandler(e)}
 								/>
