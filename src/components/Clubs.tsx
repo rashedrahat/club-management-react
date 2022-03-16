@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllClubs } from "redux/selectors";
-import { parseGET } from "utils/api";
+import { parseGET, parsePOST } from "utils/api";
 import { fetchClubs } from "redux/club/club.actions";
-import SearchBar from "./common/SearchBar";
-import SlideOver from "./common/SlideOver";
+import SearchBar from "components/common/SearchBar";
+import SlideOver from "components/common/SlideOver";
+import { formatDate } from "utils/helpers";
 
 /* eslint-disable array-callback-return */
 type MembersAvatarProps = {
@@ -37,7 +38,6 @@ const MembersAvatars = ({ list }: MembersAvatarProps) => {
 
 type ClubProps = {
 	id: number;
-	slug: string;
 	imgURL: string;
 	name: string;
 	members: object[];
@@ -72,8 +72,8 @@ const Club = ({
 					<p
 						className={`text-sm ${
 							members.length > 0
-								? `text-indigo-600 hover:text-indigo-800 cursor-pointer`
-								: `text-red-600 cursor-not-allowed`
+								? `text-indigo-600 hover:text-indigo-800`
+								: `text-red-600`
 						} font-semibold`}
 					>
 						{members.length} Member
@@ -113,7 +113,7 @@ export default function Clubs() {
 			const result = await parseGET(
 				`${process.env.REACT_APP_API_ENDPOINT}/clubs`,
 				{
-					params: { _embed: "members" },
+					params: { _embed: "members", _sort: "name", _order: "asc" },
 				}
 			);
 			if (result) {
@@ -156,6 +156,37 @@ export default function Clubs() {
 		if (!open) setClubIdToAddMember(undefined);
 	}, [open]);
 
+	const takeActionOfData = async (data: any) => {
+		try {
+			const formatData = {
+				name: data.name,
+				avatar: data.avatar,
+				dob: data.dob,
+				joinedAt: formatDate(new Date()),
+				skills: [
+					{
+						technicalAbility: parseInt(data.technicalAbility),
+					},
+					{
+						mentality: parseInt(data.mentality),
+					},
+				],
+				clubId: clubIdToAddMember,
+			};
+			const result = await parsePOST(
+				`${process.env.REACT_APP_API_ENDPOINT}/members`,
+				formatData
+			);
+			if (result) {
+				setOpen(false);
+				fetchData();
+			}
+		} catch (err) {
+			// eslint-disable-next-line no-console
+			console.error(err);
+		}
+	};
+
 	return (
 		<div className="max-w-full h-full rounded-xl mx-5">
 			<div className="container mx-auto py-10">
@@ -164,6 +195,7 @@ export default function Clubs() {
 					setOpen={setOpen}
 					title="New member"
 					description="Proceed by filling in the information below to add a member into this club."
+					takeActionOfData={takeActionOfData}
 				/>
 				<div className="flex justify-between items-center">
 					<h1 className="font-semibold text-xl leading-10 text-gray-700">
@@ -181,7 +213,6 @@ export default function Clubs() {
 							{clubs.map((club: ClubProps) => (
 								<Club
 									id={club.id}
-									slug={club.slug}
 									imgURL={club.imgURL}
 									name={club.name}
 									members={club.members}

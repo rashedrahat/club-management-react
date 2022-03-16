@@ -1,14 +1,26 @@
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XIcon } from "@heroicons/react/outline";
 import Input from "./form/Input";
 import Label from "./form/Label";
+import { Upload } from "upload-js";
+
+const upload = new Upload({ apiKey: "public_12a1xiFAfR4joE1R72ix1S6Ucnsg" });
+const initialinputs = {
+	name: "",
+	avatar:
+		"https://media.istockphoto.com/vectors/missing-image-of-a-person-placeholder-vector-id1288129985?k=20&m=1288129985&s=612x612&w=0&h=OHfZHfKj0oqIDMl5f_oRqH13MHiB63nUmySYILbWbjE=",
+	dob: "",
+	technicalAbility: "50",
+	mentality: "50",
+};
 
 type SlideoverProps = {
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	title: string;
 	description: string;
+	takeActionOfData: (data: any) => void;
 };
 
 export default function SlideOver({
@@ -16,13 +28,52 @@ export default function SlideOver({
 	setOpen,
 	title,
 	description,
+	takeActionOfData,
 }: SlideoverProps) {
+	const [inputs, setInputs] = useState(initialinputs);
+
+	const [fileUploading, setFileUploading] = useState(false);
+	const [fileUploadingProgress, setFileUploadingProgess] = useState(0);
+
+	const onChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const { name, value } = e.target;
+		setInputs((values) => ({ ...values, [name]: value }));
+	};
+
+	const fileHandler = upload.createFileInputHandler({
+		onProgress: ({ bytesSent, bytesTotal }) => {
+			if (!fileUploading) setFileUploading(true);
+			const completion = (bytesSent / bytesTotal) * 100;
+			setFileUploadingProgess(Math.round(completion));
+		},
+		onUploaded: ({ fileUrl }) => {
+			setFileUploading(false);
+			setInputs((values) => ({ ...values, ...{ avatar: fileUrl } }));
+		},
+		onError: (error) => {
+			setFileUploading(false);
+			// eslint-disable-next-line no-console
+			console.log(`Error!\n${error.message}`);
+		},
+	});
+
+	const onSubmithandler = async (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		takeActionOfData(inputs);
+		setInputs(initialinputs);
+	};
+
+	const handleClose = () => {
+		setInputs(initialinputs);
+		setOpen(false);
+	};
+
 	return (
 		<Transition.Root show={open} as={Fragment}>
 			<Dialog
 				as="div"
 				className="fixed inset-0 overflow-hidden"
-				onClose={setOpen}
+				onClose={handleClose}
 			>
 				<div className="absolute inset-0 overflow-hidden">
 					<Transition.Child
@@ -60,7 +111,7 @@ export default function SlideOver({
 										<button
 											type="button"
 											className="rounded-md text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-white"
-											onClick={() => setOpen(false)}
+											onClick={handleClose}
 										>
 											<span className="sr-only">Close panel</span>
 											<XIcon className="h-6 w-6" aria-hidden="true" />
@@ -78,150 +129,162 @@ export default function SlideOver({
 										</Dialog.Description>
 									</div>
 
-									<div className="mt-6 flex flex-col gap-y-6 flex-1 px-4 sm:px-6">
-										<div>
-											<h6 className="text-xl font-medium text-gray-700">
-												Personal information
-											</h6>
-											<hr />
-											<div className="mt-4 flex flex-col gap-y-2">
-												<div>
-													<Label
-														htmlFor={"Name"}
-														name={"Full name"}
-														className={
-															"mb-1 block text-sm font-medium text-gray-600"
-														}
-													/>
-													<Input
-														type={"text"}
-														name={"Name"}
-														autoComplete={"on"}
-														className={
-															"rounded-md shadow-sm relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-														}
-														value={""}
-														onChange={(e) => console.log(e)}
-													/>
-												</div>
+									<form onSubmit={onSubmithandler}>
+										<div className="mt-6 flex flex-col gap-y-6 flex-1 px-4 sm:px-6">
+											<div>
+												<h6 className="text-xl font-medium text-gray-700">
+													Personal information
+												</h6>
+												<hr />
+												<div className="mt-4 flex flex-col gap-y-2">
+													<div>
+														<Label
+															htmlFor={"Name"}
+															name={"Full name"}
+															className={
+																"mb-1 block text-sm font-medium text-gray-600"
+															}
+														/>
+														<Input
+															type={"text"}
+															name={"name"}
+															autoComplete={"on"}
+															className={
+																"rounded-md shadow-sm relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+															}
+															value={inputs.name}
+															onChange={(e) => onChangeHandler(e)}
+														/>
+													</div>
 
-												<div>
-													<Label
-														htmlFor={"Date of birth"}
-														name={"Date of birth"}
-														className={
-															"mb-1 block text-sm font-medium text-gray-600"
-														}
-													/>
-													<Input
-														type={"date"}
-														name={"Name"}
-														className={
-															"rounded-md shadow-sm relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-														}
-														value={"16/08/1994"}
-														onChange={(e) => console.log(e)}
-													/>
-												</div>
+													<div>
+														<Label
+															htmlFor={"Date of birth"}
+															name={"Date of birth"}
+															className={
+																"mb-1 block text-sm font-medium text-gray-600"
+															}
+														/>
+														<Input
+															type={"date"}
+															name={"dob"}
+															className={
+																"rounded-md shadow-sm relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+															}
+															value={inputs.dob}
+															onChange={(e) => onChangeHandler(e)}
+														/>
+													</div>
 
-												<div>
-													<Label
-														htmlFor={"Photo"}
-														name={"Photo"}
-														className={
-															"mb-1 block text-sm font-medium text-gray-600"
-														}
-													/>
-													<div className="mt-1 flex items-center">
-														<span className="inline-block h-12 w-12 rounded-full overflow-hidden bg-gray-100">
-															<svg
-																className="h-full w-full text-gray-300"
-																fill="currentColor"
-																viewBox="0 0 24 24"
+													<div>
+														<Label
+															htmlFor={"Photo"}
+															name={"Photo"}
+															className={
+																"mb-1 block text-sm font-medium text-gray-600"
+															}
+														/>
+														<div className="mt-1 flex items-center">
+															<div
+																className="flex justify-center items-center h-12 w-12 rounded-full overflow-hidden bg-gray-100"
+																style={{
+																	backgroundImage: `url(${inputs.avatar})`,
+																	backgroundPosition: "center",
+																	backgroundRepeat: `no-repeat`,
+																	backgroundSize: `cover`,
+																}}
 															>
-																<path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-															</svg>
-														</span>
-														<div className="flex text-sm text-gray-600">
-															<label
-																htmlFor="file-upload"
-																className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500"
-															>
-																<div className="ml-5 bg-white py-2 px-3 border border-gray-300 rounded-full shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50">
-																	Change
-																</div>
-																<input
-																	id="file-upload"
-																	name="avatar"
-																	type="file"
-																	className="sr-only"
-																/>
-															</label>
+																{fileUploading && (
+																	<p className="text-sm font-semibold text-indigo-600">
+																		{fileUploadingProgress}%
+																	</p>
+																)}
+															</div>
+															<div className="flex text-sm text-gray-600">
+																<label
+																	htmlFor="file-upload"
+																	className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500"
+																>
+																	<div className="ml-5 bg-white py-2 px-3 border border-gray-300 rounded-full shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50">
+																		Change
+																	</div>
+																	<input
+																		required
+																		accept="image/*"
+																		id="file-upload"
+																		name="avatar"
+																		type="file"
+																		className="sr-only"
+																		onChange={fileHandler}
+																	/>
+																</label>
+															</div>
 														</div>
+													</div>
+												</div>
+											</div>
+
+											<div>
+												<h6 className="text-xl font-medium text-gray-700">
+													Skills
+												</h6>
+												<hr />
+												<div className="mt-4 flex flex-col gap-y-2">
+													<div>
+														<Label
+															htmlFor={"Technical Ability"}
+															name={"Technical Ability"}
+															className={
+																"mb-1 block text-sm font-medium text-gray-600"
+															}
+														/>
+														<Input
+															type={"range"}
+															name={"technicalAbility"}
+															className={"w-full"}
+															value={inputs.technicalAbility}
+															onChange={(e) => onChangeHandler(e)}
+														/>
+													</div>
+
+													<div>
+														<Label
+															htmlFor={"mentality"}
+															name={"Mentality"}
+															className={
+																"mb-1 block text-sm font-medium text-gray-600"
+															}
+														/>
+														<Input
+															type={"range"}
+															name={"mentality"}
+															className={"w-full"}
+															value={inputs.mentality}
+															onChange={(e) => onChangeHandler(e)}
+														/>
 													</div>
 												</div>
 											</div>
 										</div>
 
-										<div>
-											<h6 className="text-xl font-medium text-gray-700">
-												Skills
-											</h6>
-											<hr />
-											<div className="mt-4 flex flex-col gap-y-2">
-												<div>
-													<Label
-														htmlFor={"Technical Ability"}
-														name={"Technical Ability"}
-														className={
-															"mb-1 block text-sm font-medium text-gray-600"
-														}
-													/>
-													<Input
-														type={"range"}
-														name={"technicalAbility"}
-														className={"w-full"}
-														value={50}
-														onChange={(e) => console.log(e)}
-													/>
-												</div>
+										<div className="absolute w-full bottom-0 flex justify-end gap-x-4 px-4 py-3 bg-gray-50 text-right sm:px-6 border-t border-gray-100">
+											<button
+												onClick={handleClose}
+												type="button"
+												className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-full text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+											>
+												Cancel
+											</button>
 
-												<div>
-													<Label
-														htmlFor={"mentality"}
-														name={"Mentality"}
-														className={
-															"mb-1 block text-sm font-medium text-gray-600"
-														}
-													/>
-													<Input
-														type={"range"}
-														name={"mentality"}
-														className={"w-full"}
-														value={50}
-														onChange={(e) => console.log(e)}
-													/>
-												</div>
-											</div>
+											<button
+												disabled={fileUploading}
+												type="submit"
+												className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+											>
+												Add
+											</button>
 										</div>
-									</div>
-
-									<div className="flex justify-end gap-x-4 px-4 py-3 bg-gray-50 text-right sm:px-6 border-t border-gray-100">
-										<button
-											onClick={() => setOpen(false)}
-											type="button"
-											className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-full text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-										>
-											Cancel
-										</button>
-
-										<button
-											type="submit"
-											className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-										>
-											Add
-										</button>
-									</div>
+									</form>
 								</div>
 							</div>
 						</Transition.Child>

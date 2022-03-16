@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import { SET_LOGIN_CRED } from "redux/auth/auth.types";
 import Dashboard from "components/Dashboard";
 import Clubs from "components/Clubs";
+import Members from "components/Members";
 
 function App() {
 	const auth = useSelector((state) => getAuthInfo(state));
@@ -42,6 +43,11 @@ function App() {
 						path={appRoutes.DASHBOARD}
 					/>
 					<PrivateRoute Component={Clubs} auth={auth} path={appRoutes.CLUBS} />
+					<PrivateRoute
+						Component={Members}
+						auth={auth}
+						path={appRoutes.MEMBERS}
+					/>
 					<Redirect to={appRoutes.LOG_IN} />
 				</Switch>
 			</>
