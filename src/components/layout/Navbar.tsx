@@ -6,16 +6,12 @@ import { logOut } from "redux/auth/auth.actions";
 import { Fragment } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { MenuIcon, XIcon } from "@heroicons/react/outline";
+import { classNames } from "utils/helpers";
 
 const navigation = [
-	{ name: "Dashboard", href: appRoutes.DASHBOARD, current: true },
-	{ name: "Clubs", href: appRoutes.CLUBS, current: false },
+	{ name: "Clubs", href: appRoutes.CLUBS, current: true },
 	{ name: "Members", href: appRoutes.MEMBERS, current: false },
 ];
-
-function classNames(...classes: string[]) {
-	return classes.filter(Boolean).join(" ");
-}
 
 type NavbarProps = {
 	auth: { isLoggedIn: boolean; me: { userName: string } | null };

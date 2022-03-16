@@ -12,7 +12,7 @@ const Login = () => {
 
 	useEffect(() => {
 		const loggedInUser = localStorage.getItem("loggedInUser");
-		if (loggedInUser) history.push(appRoutes.DASHBOARD);
+		if (loggedInUser) history.push(appRoutes.CLUBS);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
@@ -40,7 +40,7 @@ const Login = () => {
 				};
 				dispatch(logIn(matchedUser));
 				localStorage.setItem("loggedInUser", JSON.stringify(matchedUser));
-				history.push(appRoutes.DASHBOARD);
+				history.push(appRoutes.CLUBS);
 			}
 		} catch (err) {
 			// eslint-disable-next-line no-console

@@ -4,7 +4,7 @@ export const getAllClubs = (state: any) => state.club.list;
 
 export const getClubNames = (state: any) =>
 	state.club.list.map((club: any) => {
-		return { name: club.name, id: club.id };
+		return { id: club.id, name: club.name, avatar: club.imgURL };
 	});
 
 export const getAllMembers = (state: any) => state.member.list;

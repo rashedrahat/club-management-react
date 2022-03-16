@@ -1,3 +1,7 @@
+export const classNames = (...classes: string[]) => {
+	return classes.filter(Boolean).join(" ");
+};
+
 function padTo2Digits(num: number) {
 	return num.toString().padStart(2, "0");
 }

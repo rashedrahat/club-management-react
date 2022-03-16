@@ -1,21 +1,27 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { fetchClubs } from "redux/club/club.actions";
 import { fetchMembers } from "redux/member/member.actions";
-import { parseGET, parsePOST } from "utils/api";
-import { formatDate } from "utils/helpers";
+import { parseDELETE, parseGET, parsePUT } from "utils/api";
 import SlideOver from "./common/SlideOver";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllMembers, getClubNames } from "redux/selectors";
+import {
+	TrashIcon,
+	PencilIcon,
+	ExclamationIcon,
+} from "@heroicons/react/outline";
+import { formatDate } from "utils/helpers";
+import { Transition, Dialog } from "@headlessui/react";
 
 type ClubsProps = {
-	list: { name: string; id: number }[];
+	list: { name: string; id: number; avatar: string }[];
 	selectedClubId: number | undefined;
 	setSelectedClubId: (id: number | undefined) => void;
 };
 
 const Clubs = ({ list, selectedClubId, setSelectedClubId }: ClubsProps) => {
 	return (
-		<div className="flex flex-wrap gap-4 bg-white rounded-3xl p-5 items-center">
+		<div className="flex flex-wrap gap-4 bg-white rounded-3xl p-5 items-center shadow">
 			{list.length > 1 && (
 				<div
 					onClick={() => setSelectedClubId(undefined)}
@@ -45,11 +51,132 @@ const Clubs = ({ list, selectedClubId, setSelectedClubId }: ClubsProps) => {
 	);
 };
 
-type MembersTableProps = {
-	list: object[];
+type DeleteConfirmationProps = {
+	open: boolean;
+	setOpen: (open: boolean) => void;
+	handleDelete: () => void;
 };
 
-const MembersTable = ({ list }: MembersTableProps) => {
+const DeleteConfirmation = ({
+	open,
+	setOpen,
+	handleDelete,
+}: DeleteConfirmationProps) => {
+	const cancelButtonRef = useRef(null);
+
+	return (
+		<Transition.Root show={open} as={Fragment}>
+			<Dialog
+				as="div"
+				className="fixed z-10 inset-0 overflow-y-auto"
+				initialFocus={cancelButtonRef}
+				onClose={setOpen}
+			>
+				<div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+					<Transition.Child
+						as={Fragment}
+						enter="ease-out duration-300"
+						enterFrom="opacity-0"
+						enterTo="opacity-100"
+						leave="ease-in duration-200"
+						leaveFrom="opacity-100"
+						leaveTo="opacity-0"
+					>
+						<Dialog.Overlay className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+					</Transition.Child>
+
+					{/* This element is to trick the browser into centering the modal contents. */}
+					<span
+						className="hidden sm:inline-block sm:align-middle sm:h-screen"
+						aria-hidden="true"
+					>
+						&#8203;
+					</span>
+					<Transition.Child
+						as={Fragment}
+						enter="ease-out duration-300"
+						enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+						enterTo="opacity-100 translate-y-0 sm:scale-100"
+						leave="ease-in duration-200"
+						leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+						leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+					>
+						<div className="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+							<div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+								<div className="sm:flex sm:items-start">
+									<div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+										<ExclamationIcon
+											className="h-6 w-6 text-red-600"
+											aria-hidden="true"
+										/>
+									</div>
+									<div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+										<Dialog.Title
+											as="h3"
+											className="text-lg leading-6 font-medium text-gray-900"
+										>
+											Delete member
+										</Dialog.Title>
+										<div className="mt-2">
+											<p className="text-sm text-gray-500">
+												Are you sure you want to delete this member? Once you
+												delete, the data will be permanently removed. This
+												action cannot be undone.
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+								<button
+									type="button"
+									className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+									onClick={() => handleDelete()}
+								>
+									Yes, delete
+								</button>
+								<button
+									type="button"
+									className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+									onClick={() => setOpen(false)}
+									ref={cancelButtonRef}
+								>
+									Cancel
+								</button>
+							</div>
+						</div>
+					</Transition.Child>
+				</div>
+			</Dialog>
+		</Transition.Root>
+	);
+};
+
+type MembersTableProps = {
+	list: object[];
+	setOpenEdit: (open: boolean) => void;
+	setOpenDelete: (open: boolean) => void;
+	setSelectedMemberIdToBeEdited: (id: number | undefined) => void;
+	setSelectedMemberIdToBeDeleted: (id: number | undefined) => void;
+};
+
+const MembersTable = ({
+	list,
+	setOpenEdit,
+	setOpenDelete,
+	setSelectedMemberIdToBeEdited,
+	setSelectedMemberIdToBeDeleted,
+}: MembersTableProps) => {
+	const handleAction = (id: number, action: string) => {
+		if (action === "edit") {
+			setOpenEdit(true);
+			setSelectedMemberIdToBeEdited(id);
+		} else {
+			setOpenDelete(true);
+			setSelectedMemberIdToBeDeleted(id);
+		}
+	};
+
 	return (
 		<div className="py-8">
 			<h1 className="font-normal text-xl leading-10 text-gray-700">
@@ -165,17 +292,16 @@ const MembersTable = ({ list }: MembersTableProps) => {
 												})}
 											</td>
 											<td className="px-5 py-5 border-b border-gray-200 bg-white text-sm text-right">
-												<button
-													type="button"
-													className="inline-block text-gray-500 hover:text-gray-700"
-												>
-													<svg
-														className="inline-block h-6 w-6 fill-current"
-														viewBox="0 0 24 24"
-													>
-														<path d="M12 6a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm-2 6a2 2 0 104 0 2 2 0 00-4 0z" />
-													</svg>
-												</button>
+												<div className="flex gap-x-2 items-center">
+													<PencilIcon
+														className="h-6 w-6 cursor-pointer text-indigo-600 hover:text-indigo-800"
+														onClick={() => handleAction(member.id, "edit")}
+													/>
+													<TrashIcon
+														className="h-6 w-6 cursor-pointer text-red-600 hover:text-red-700"
+														onClick={() => handleAction(member.id, "delete")}
+													/>
+												</div>
 											</td>
 										</tr>
 									);
@@ -194,20 +320,28 @@ export default function Members() {
 	const clubs = useSelector((state) => getClubNames(state));
 	const members = useSelector((state) => getAllMembers(state));
 
-	const [open, setOpen] = useState(false);
+	const [openEdit, setOpenEdit] = useState(false);
+	const [openDelete, setOpenDelete] = useState(false);
 	const [selectedClubId, setSelectedClubId] = useState<number | undefined>(
 		undefined
 	);
+	const [selectedMemberIdToBeEdited, setSelectedMemberIdToBeEdited] = useState<
+		number | undefined
+	>(undefined);
+	const [selectedMemberIdToBeDeleted, setSelectedMemberIdToBeDeleted] =
+		useState<number | undefined>(undefined);
+
+	useEffect(() => {
+		if (!openEdit) setSelectedMemberIdToBeEdited(undefined);
+		if (!openDelete) setSelectedMemberIdToBeDeleted(undefined);
+	}, [openEdit, openDelete]);
 
 	const fetchAllClubs = async () => {
 		try {
 			const result = await parseGET(
 				`${process.env.REACT_APP_API_ENDPOINT}/clubs`,
 				{
-					params: {
-						_sort: "name",
-						_order: "asc",
-					},
+					params: { _embed: "members", _sort: "name", _order: "asc" },
 				}
 			);
 			if (result) {
@@ -254,43 +388,63 @@ export default function Members() {
 	}, [selectedClubId]);
 
 	const takeActionOfData = async (data: any) => {
-		// try {
-		// 	const formatData = {
-		// 		name: data.name,
-		// 		avatar: data.avatar,
-		// 		dob: data.dob,
-		// 		joinedAt: formatDate(new Date()),
-		// 		skills: [
-		// 			{
-		// 				technicalAbility: parseInt(data.technicalAbility),
-		// 				mentality: parseInt(data.mentality),
-		// 			},
-		// 		],
-		// 		clubId: clubIdToAddMember,
-		// 	};
-		// 	const result = await parsePOST(
-		// 		`${process.env.REACT_APP_API_ENDPOINT}/members`,
-		// 		formatData
-		// 	);
-		// 	if (result) {
-		// 		setOpen(false);
-		// 		fetchData();
-		// 	}
-		// } catch (err) {
-		// 	// eslint-disable-next-line no-console
-		// 	console.error(err);
-		// }
+		try {
+			const formatData = {
+				name: data.name,
+				avatar: data.avatar,
+				dob: data.dob,
+				joinedAt: formatDate(new Date()),
+				skills: [
+					{
+						technicalAbility: parseInt(data.technicalAbility),
+					},
+					{
+						mentality: parseInt(data.mentality),
+					},
+				],
+				clubId: data.clubId,
+			};
+			const result = await parsePUT(
+				`${process.env.REACT_APP_API_ENDPOINT}/members/${selectedMemberIdToBeEdited}`,
+				formatData
+			);
+			if (result) {
+				setOpenEdit(false);
+				fetchAllMembers();
+			}
+		} catch (err) {
+			// eslint-disable-next-line no-console
+			console.error(err);
+		}
+	};
+
+	const proceedDelete = async () => {
+		try {
+			const result = await parseDELETE(
+				`${process.env.REACT_APP_API_ENDPOINT}/members/${selectedMemberIdToBeDeleted}`
+			);
+			if (result) {
+				setOpenDelete(false);
+				fetchAllMembers();
+			}
+		} catch (err) {
+			// eslint-disable-next-line no-console
+			console.error(err);
+		}
 	};
 
 	return (
 		<div className="max-w-full h-full rounded-xl mx-5">
 			<div className="container mx-auto py-10">
 				<SlideOver
-					open={open}
-					setOpen={setOpen}
-					title="New member"
-					description="Proceed by filling in the information below to add a member into this club."
+					open={openEdit}
+					setOpen={setOpenEdit}
+					title="Edit member"
+					description="Proceed by filling in the information below to update a member into this club."
 					takeActionOfData={takeActionOfData}
+					actionMood="edit"
+					selectedMemberId={selectedMemberIdToBeEdited}
+					clubs={clubs}
 				/>
 
 				<div>
@@ -305,8 +459,20 @@ export default function Members() {
 				</div>
 
 				<div>
-					<MembersTable list={members} />
+					<MembersTable
+						list={members}
+						setOpenEdit={setOpenEdit}
+						setOpenDelete={setOpenDelete}
+						setSelectedMemberIdToBeEdited={setSelectedMemberIdToBeEdited}
+						setSelectedMemberIdToBeDeleted={setSelectedMemberIdToBeDeleted}
+					/>
 				</div>
+
+				<DeleteConfirmation
+					open={openDelete}
+					setOpen={setOpenDelete}
+					handleDelete={proceedDelete}
+				/>
 			</div>
 		</div>
 	);

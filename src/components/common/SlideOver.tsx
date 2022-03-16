@@ -1,18 +1,31 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XIcon } from "@heroicons/react/outline";
 import Input from "./form/Input";
 import Label from "./form/Label";
 import { Upload } from "upload-js";
+import { parseGET } from "utils/api";
+import Select from "./form/Select";
 
 const upload = new Upload({ apiKey: "public_12a1xiFAfR4joE1R72ix1S6Ucnsg" });
-const initialinputs = {
+const initialInputs = {
 	name: "",
 	avatar:
 		"https://media.istockphoto.com/vectors/missing-image-of-a-person-placeholder-vector-id1288129985?k=20&m=1288129985&s=612x612&w=0&h=OHfZHfKj0oqIDMl5f_oRqH13MHiB63nUmySYILbWbjE=",
 	dob: "",
 	technicalAbility: "50",
 	mentality: "50",
+};
+const initialClubData = {
+	id: 0,
+	name: "",
+	avatar: "",
+};
+
+type ClubProps = {
+	id: number;
+	name: string;
+	avatar: string;
 };
 
 type SlideoverProps = {
@@ -21,6 +34,9 @@ type SlideoverProps = {
 	title: string;
 	description: string;
 	takeActionOfData: (data: any) => void;
+	actionMood?: "create" | "edit";
+	selectedMemberId?: number | undefined;
+	clubs?: ClubProps[];
 };
 
 export default function SlideOver({
@@ -29,11 +45,53 @@ export default function SlideOver({
 	title,
 	description,
 	takeActionOfData,
+	actionMood = "create",
+	selectedMemberId,
+	clubs = [],
 }: SlideoverProps) {
-	const [inputs, setInputs] = useState(initialinputs);
+	const [inputs, setInputs] = useState(initialInputs);
+	const [selectedClubItem, setSelectedClubItem] = useState(initialClubData);
 
 	const [fileUploading, setFileUploading] = useState(false);
 	const [fileUploadingProgress, setFileUploadingProgess] = useState(0);
+
+	const fetchMember = async () => {
+		try {
+			const result = await parseGET(
+				`${process.env.REACT_APP_API_ENDPOINT}/members`,
+				{
+					params: { id: selectedMemberId, _expand: "club" },
+				}
+			);
+			if (result) {
+				setInputs((values) => ({
+					...values,
+					...{
+						name: result[0].name,
+						dob: result[0].dob,
+						avatar: result[0].avatar,
+						technicalAbility: result[0].skills[0].technicalAbility,
+						mentality: result[0].skills[1].mentality,
+					},
+				}));
+				setSelectedClubItem((values) => ({
+					...values,
+					...{
+						id: result[0].club.id,
+						avatar: result[0].club.imgURL,
+						name: result[0].club.name,
+					},
+				}));
+			}
+		} catch (err) {
+			// eslint-disable-next-line no-console
+			console.error(err);
+		}
+	};
+
+	useEffect(() => {
+		if (open && actionMood === "edit") fetchMember();
+	}, [open, actionMood]);
 
 	const onChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
@@ -59,12 +117,14 @@ export default function SlideOver({
 
 	const onSubmithandler = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		takeActionOfData(inputs);
-		setInputs(initialinputs);
+		takeActionOfData({ ...inputs, ...{ clubId: selectedClubItem.id } });
+		setInputs(initialInputs);
+		if (actionMood === "edit") setSelectedClubItem(initialClubData);
 	};
 
 	const handleClose = () => {
-		setInputs(initialinputs);
+		setInputs(initialInputs);
+		if (actionMood === "edit") setSelectedClubItem(initialClubData);
 		setOpen(false);
 	};
 
@@ -131,6 +191,14 @@ export default function SlideOver({
 
 									<form onSubmit={onSubmithandler}>
 										<div className="mt-6 flex flex-col gap-y-6 flex-1 px-4 sm:px-6">
+											{actionMood === "edit" && (
+												<Select
+													label="Assigned club"
+													list={clubs}
+													selectedItem={selectedClubItem}
+													setSelectedItem={setSelectedClubItem}
+												/>
+											)}
 											<div>
 												<h6 className="text-xl font-medium text-gray-700">
 													Personal information
@@ -209,7 +277,7 @@ export default function SlideOver({
 																		Change
 																	</div>
 																	<input
-																		required
+																		required={actionMood !== "edit"}
 																		accept="image/*"
 																		id="file-upload"
 																		name="avatar"
@@ -249,7 +317,7 @@ export default function SlideOver({
 
 													<div>
 														<Label
-															htmlFor={"mentality"}
+															htmlFor={"Mentality"}
 															name={"Mentality"}
 															className={
 																"mb-1 block text-sm font-medium text-gray-600"
@@ -281,7 +349,7 @@ export default function SlideOver({
 												type="submit"
 												className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
 											>
-												Add
+												{actionMood === "create" ? `Add` : `Edit`}
 											</button>
 										</div>
 									</form>

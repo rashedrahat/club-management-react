@@ -17,3 +17,21 @@ export const parsePOST = <Req, Res>(
 		.then((response) => response.data)
 		.catch((err) => err);
 };
+
+export const parsePUT = <Req, Res>(
+	url: string,
+	body: Req,
+	options?: AxiosRequestConfig
+) => {
+	return axios
+		.put<Res>(url, body, options)
+		.then((response) => response.data)
+		.catch((err) => err);
+};
+
+export const parseDELETE = <Res>(url: string, options?: AxiosRequestConfig) => {
+	return axios
+		.delete<Res>(url, options)
+		.then((response) => response.data)
+		.catch((err) => err);
+};

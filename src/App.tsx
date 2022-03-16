@@ -13,7 +13,6 @@ import { useSelector, useDispatch } from "react-redux";
 import { getAuthInfo } from "redux/selectors";
 import { useEffect } from "react";
 import { SET_LOGIN_CRED } from "redux/auth/auth.types";
-import Dashboard from "components/Dashboard";
 import Clubs from "components/Clubs";
 import Members from "components/Members";
 
@@ -37,11 +36,6 @@ function App() {
 				<Navbar auth={auth} />
 				<Switch>
 					<Route path={appRoutes.LOG_IN} exact component={Login} />
-					<PrivateRoute
-						Component={Dashboard}
-						auth={auth}
-						path={appRoutes.DASHBOARD}
-					/>
 					<PrivateRoute Component={Clubs} auth={auth} path={appRoutes.CLUBS} />
 					<PrivateRoute
 						Component={Members}
