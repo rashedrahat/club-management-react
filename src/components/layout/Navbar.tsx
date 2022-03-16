@@ -7,11 +7,7 @@ import { Fragment } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { MenuIcon, XIcon } from "@heroicons/react/outline";
 import { classNames } from "utils/helpers";
-
-const navigation = [
-	{ name: "Clubs", href: appRoutes.CLUBS, current: true },
-	{ name: "Members", href: appRoutes.MEMBERS, current: false },
-];
+import toast from "react-hot-toast";
 
 type NavbarProps = {
 	auth: { isLoggedIn: boolean; me: { userName: string } | null };
@@ -21,9 +17,23 @@ const Navbar = ({ auth }: NavbarProps) => {
 	const dispatch = useDispatch();
 	const location = useLocation();
 
+	const navigation = [
+		{
+			name: "Clubs",
+			href: appRoutes.CLUBS,
+			current: location.pathname === appRoutes.CLUBS,
+		},
+		{
+			name: "Members",
+			href: appRoutes.MEMBERS,
+			current: location.pathname === appRoutes.MEMBERS,
+		},
+	];
+
 	const handleLogOut = () => {
 		dispatch(logOut());
 		localStorage.removeItem("loggedInUser");
+		toast.success("Successfully logged out.");
 	};
 
 	return (
@@ -129,10 +139,9 @@ const Navbar = ({ auth }: NavbarProps) => {
 						<Disclosure.Panel className="sm:hidden">
 							<div className="px-2 pt-2 pb-3 space-y-1">
 								{navigation.map((item) => (
-									<Disclosure.Button
+									<Link
 										key={item.name}
-										as="a"
-										href={item.href}
+										to={item.href}
 										className={classNames(
 											item.current
 												? "bg-gray-900 text-white"
@@ -142,7 +151,7 @@ const Navbar = ({ auth }: NavbarProps) => {
 										aria-current={item.current ? "page" : undefined}
 									>
 										{item.name}
-									</Disclosure.Button>
+									</Link>
 								))}
 							</div>
 						</Disclosure.Panel>

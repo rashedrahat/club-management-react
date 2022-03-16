@@ -6,6 +6,12 @@ import React, { useEffect, useState } from "react";
 import { parseGET } from "utils/api";
 import { useHistory } from "react-router-dom";
 import { appRoutes } from "utils/routes";
+import toast from "react-hot-toast";
+import {
+	AUTH_TASK_FAIL,
+	AUTH_TASK_LOADING,
+	AUTH_TASK_SUCCESS,
+} from "redux/auth/auth.types";
 
 const Login = () => {
 	let history = useHistory();
@@ -27,6 +33,7 @@ const Login = () => {
 	const onSubmithandler = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		try {
+			dispatch({ type: AUTH_TASK_LOADING });
 			const result = await parseGET(
 				`${process.env.REACT_APP_API_ENDPOINT}/users`,
 				{
@@ -40,11 +47,15 @@ const Login = () => {
 				};
 				dispatch(logIn(matchedUser));
 				localStorage.setItem("loggedInUser", JSON.stringify(matchedUser));
+				dispatch({ type: AUTH_TASK_SUCCESS });
 				history.push(appRoutes.CLUBS);
+				toast.success("Successfully logged in.");
 			}
 		} catch (err) {
+			dispatch({ type: AUTH_TASK_FAIL });
 			// eslint-disable-next-line no-console
 			console.error(err);
+			toast.error("Login failed!");
 		}
 	};
 

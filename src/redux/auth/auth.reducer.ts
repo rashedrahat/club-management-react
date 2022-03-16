@@ -1,6 +1,14 @@
-import { LOG_IN, LOG_OUT, SET_LOGIN_CRED } from "./auth.types";
+import {
+	LOG_IN,
+	LOG_OUT,
+	SET_LOGIN_CRED,
+	AUTH_TASK_LOADING,
+	AUTH_TASK_SUCCESS,
+	AUTH_TASK_FAIL,
+} from "./auth.types";
 
 const INITIAL_STATE = {
+	loading: false,
 	isLoggedIn: false,
 	me: null,
 };
@@ -23,6 +31,19 @@ const reducer = (
 				...state,
 				isLoggedIn: false,
 				me: null,
+			};
+
+		case AUTH_TASK_LOADING:
+			return {
+				...state,
+				loading: true,
+			};
+
+		case AUTH_TASK_SUCCESS:
+		case AUTH_TASK_FAIL:
+			return {
+				...state,
+				loading: false,
 			};
 
 		default:

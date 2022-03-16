@@ -6,6 +6,7 @@ import Label from "./form/Label";
 import { Upload } from "upload-js";
 import { parseGET } from "utils/api";
 import Select from "./form/Select";
+import toast from "react-hot-toast";
 
 const upload = new Upload({ apiKey: "public_12a1xiFAfR4joE1R72ix1S6Ucnsg" });
 const initialInputs = {
@@ -91,6 +92,7 @@ export default function SlideOver({
 
 	useEffect(() => {
 		if (open && actionMood === "edit") fetchMember();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [open, actionMood]);
 
 	const onChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,6 +114,7 @@ export default function SlideOver({
 			setFileUploading(false);
 			// eslint-disable-next-line no-console
 			console.log(`Error!\n${error.message}`);
+			toast.error("File upload failed!");
 		},
 	});
 

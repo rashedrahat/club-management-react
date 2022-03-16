@@ -1,1 +1,5 @@
+export const CLUB_TASK_LOADING = "CLUB_TASK_LOADING";
+export const CLUB_TASK_SUCCESS = "CLUB_TASK_SUCCESS";
+export const CLUB_TASK_FAIL = "CLUB_TASK_FAIL";
+
 export const FETCH_ALL_CLUBS = "FETCH_ALL_CLUBS";

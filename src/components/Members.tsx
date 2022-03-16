@@ -12,6 +12,12 @@ import {
 } from "@heroicons/react/outline";
 import { formatDate } from "utils/helpers";
 import { Transition, Dialog } from "@headlessui/react";
+import toast from "react-hot-toast";
+import {
+	MEMBER_TASK_FAIL,
+	MEMBER_TASK_LOADING,
+	MEMBER_TASK_SUCCESS,
+} from "redux/member/member.types";
 
 type ClubsProps = {
 	list: { name: string; id: number; avatar: string }[];
@@ -25,11 +31,11 @@ const Clubs = ({ list, selectedClubId, setSelectedClubId }: ClubsProps) => {
 			{list.length > 1 && (
 				<div
 					onClick={() => setSelectedClubId(undefined)}
-					className={`cursor-pointer rounded-full border-2 border-indigo-600 ${
+					className={`text-sm cursor-pointer rounded-full border-2 border-indigo-600 ${
 						selectedClubId === undefined
 							? `bg-indigo-600 text-white`
 							: `text-gray-800`
-					} hover:bg-indigo-600 hover:text-white px-3 py-2 text-base font-normal`}
+					} hover:bg-indigo-600 hover:text-white px-3 py-2 font-normal`}
 				>
 					All Clubs
 				</div>
@@ -38,11 +44,11 @@ const Clubs = ({ list, selectedClubId, setSelectedClubId }: ClubsProps) => {
 				<div
 					key={i}
 					onClick={() => setSelectedClubId(club.id)}
-					className={`cursor-pointer rounded-full border-2 border-indigo-600 ${
+					className={`text-sm cursor-pointer rounded-full border-2 border-indigo-600 ${
 						selectedClubId === club.id
 							? `bg-indigo-600 text-white`
 							: `text-gray-800`
-					} hover:bg-indigo-600 hover:text-white px-3 py-2 text-base font-normal`}
+					} hover:bg-indigo-600 hover:text-white px-3 py-2 font-normal`}
 				>
 					{club.name}
 				</div>
@@ -72,7 +78,7 @@ const DeleteConfirmation = ({
 				initialFocus={cancelButtonRef}
 				onClose={setOpen}
 			>
-				<div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+				<div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
 					<Transition.Child
 						as={Fragment}
 						enter="ease-out duration-300"
@@ -338,6 +344,7 @@ export default function Members() {
 
 	const fetchAllClubs = async () => {
 		try {
+			dispatch({ type: MEMBER_TASK_LOADING });
 			const result = await parseGET(
 				`${process.env.REACT_APP_API_ENDPOINT}/clubs`,
 				{
@@ -346,8 +353,10 @@ export default function Members() {
 			);
 			if (result) {
 				dispatch(fetchClubs(result));
+				dispatch({ type: MEMBER_TASK_SUCCESS });
 			}
 		} catch (err) {
+			dispatch({ type: MEMBER_TASK_FAIL });
 			// eslint-disable-next-line no-console
 			console.error(err);
 		}
@@ -355,6 +364,7 @@ export default function Members() {
 
 	const fetchAllMembers = async () => {
 		try {
+			dispatch({ type: MEMBER_TASK_LOADING });
 			const result = await parseGET(
 				`${process.env.REACT_APP_API_ENDPOINT}/members`,
 				{
@@ -370,8 +380,10 @@ export default function Members() {
 			);
 			if (result) {
 				dispatch(fetchMembers(result));
+				dispatch({ type: MEMBER_TASK_SUCCESS });
 			}
 		} catch (err) {
+			dispatch({ type: MEMBER_TASK_FAIL });
 			// eslint-disable-next-line no-console
 			console.error(err);
 		}
@@ -389,6 +401,7 @@ export default function Members() {
 
 	const takeActionOfData = async (data: any) => {
 		try {
+			dispatch({ type: MEMBER_TASK_LOADING });
 			const formatData = {
 				name: data.name,
 				avatar: data.avatar,
@@ -409,10 +422,13 @@ export default function Members() {
 				formatData
 			);
 			if (result) {
+				dispatch({ type: MEMBER_TASK_SUCCESS });
 				setOpenEdit(false);
 				fetchAllMembers();
+				toast.success("Successfully updated.");
 			}
 		} catch (err) {
+			dispatch({ type: MEMBER_TASK_FAIL });
 			// eslint-disable-next-line no-console
 			console.error(err);
 		}
@@ -420,16 +436,21 @@ export default function Members() {
 
 	const proceedDelete = async () => {
 		try {
+			dispatch({ type: MEMBER_TASK_LOADING });
 			const result = await parseDELETE(
 				`${process.env.REACT_APP_API_ENDPOINT}/members/${selectedMemberIdToBeDeleted}`
 			);
 			if (result) {
+				dispatch({ type: MEMBER_TASK_SUCCESS });
 				setOpenDelete(false);
 				fetchAllMembers();
+				toast.success("Successfully deleted.");
 			}
 		} catch (err) {
+			dispatch({ type: MEMBER_TASK_FAIL });
 			// eslint-disable-next-line no-console
 			console.error(err);
+			toast.error("Failed to delete!");
 		}
 	};
 

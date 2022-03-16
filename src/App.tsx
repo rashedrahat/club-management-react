@@ -15,9 +15,14 @@ import { useEffect } from "react";
 import { SET_LOGIN_CRED } from "redux/auth/auth.types";
 import Clubs from "components/Clubs";
 import Members from "components/Members";
+import { Toaster } from "react-hot-toast";
+import Loader from "components/common/Loader";
+import { getLoadingStatus } from "redux/selectors";
 
 function App() {
 	const auth = useSelector((state) => getAuthInfo(state));
+	const loading = useSelector((state) => getLoadingStatus(state));
+
 	const dispatch = useDispatch();
 
 	useEffect(() => {
@@ -33,6 +38,7 @@ function App() {
 	return (
 		<Router>
 			<>
+				<Loader loading={loading} color={"#4F45E4"} />
 				<Navbar auth={auth} />
 				<Switch>
 					<Route path={appRoutes.LOG_IN} exact component={Login} />
@@ -44,6 +50,7 @@ function App() {
 					/>
 					<Redirect to={appRoutes.LOG_IN} />
 				</Switch>
+				<Toaster />
 			</>
 		</Router>
 	);

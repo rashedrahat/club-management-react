@@ -8,3 +8,9 @@ export const getClubNames = (state: any) =>
 	});
 
 export const getAllMembers = (state: any) => state.member.list;
+
+export const getLoadingStatus = (state: any) => {
+	console.log(state);
+
+	return state.auth.loading || state.club.loading || state.member.loading;
+};

@@ -6,6 +6,12 @@ import { fetchClubs } from "redux/club/club.actions";
 import SearchBar from "components/common/SearchBar";
 import SlideOver from "components/common/SlideOver";
 import { formatDate } from "utils/helpers";
+import toast from "react-hot-toast";
+import {
+	CLUB_TASK_FAIL,
+	CLUB_TASK_LOADING,
+	CLUB_TASK_SUCCESS,
+} from "redux/club/club.types";
 
 /* eslint-disable array-callback-return */
 type MembersAvatarProps = {
@@ -110,6 +116,7 @@ export default function Clubs() {
 
 	const fetchData = async () => {
 		try {
+			dispatch({ type: CLUB_TASK_LOADING });
 			const result = await parseGET(
 				`${process.env.REACT_APP_API_ENDPOINT}/clubs`,
 				{
@@ -118,15 +125,19 @@ export default function Clubs() {
 			);
 			if (result) {
 				dispatch(fetchClubs(result));
+				dispatch({ type: CLUB_TASK_SUCCESS });
 			}
 		} catch (err) {
+			dispatch({ type: CLUB_TASK_FAIL });
 			// eslint-disable-next-line no-console
 			console.error(err);
+			toast.error("Something went wrong!");
 		}
 	};
 
 	const fetchSearchQueryData = async () => {
 		try {
+			dispatch({ type: CLUB_TASK_LOADING });
 			const result = await parseGET(
 				`${process.env.REACT_APP_API_ENDPOINT}/clubs`,
 				{
@@ -135,10 +146,13 @@ export default function Clubs() {
 			);
 			if (result) {
 				dispatch(fetchClubs(result));
+				dispatch({ type: CLUB_TASK_SUCCESS });
 			}
 		} catch (err) {
+			dispatch({ type: CLUB_TASK_FAIL });
 			// eslint-disable-next-line no-console
 			console.error(err);
+			toast.error("Something went wrong!");
 		}
 	};
 
@@ -158,6 +172,7 @@ export default function Clubs() {
 
 	const takeActionOfData = async (data: any) => {
 		try {
+			dispatch({ type: CLUB_TASK_LOADING });
 			const formatData = {
 				name: data.name,
 				avatar: data.avatar,
@@ -178,12 +193,16 @@ export default function Clubs() {
 				formatData
 			);
 			if (result) {
+				dispatch({ type: CLUB_TASK_SUCCESS });
 				setOpen(false);
 				fetchData();
+				toast.success("Successfully added.");
 			}
 		} catch (err) {
+			dispatch({ type: CLUB_TASK_FAIL });
 			// eslint-disable-next-line no-console
 			console.error(err);
+			toast.error("Failed to add!");
 		}
 	};
 
