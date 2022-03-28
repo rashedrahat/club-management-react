@@ -8,7 +8,7 @@ import { parseGET } from "utils/api";
 import Select from "./form/Select";
 import toast from "react-hot-toast";
 
-const upload = new Upload({ apiKey: "public_12a1xiFAfR4joE1R72ix1S6Ucnsg" });
+const upload = new Upload({ apiKey: "public_FW25apR9ZE3z5yz55nbpt5tWDXGr" });
 const initialInputs = {
 	name: "",
 	avatar:
